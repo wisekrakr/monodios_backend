@@ -1,5 +1,6 @@
 const functions = require("firebase-functions");
 const express = require("express");
+const cors = require("cors");
 
 const showNotificationOnLike = require("./firebase/notification");
 const showNotificationOnComment = require("./firebase/notification");
@@ -12,6 +13,7 @@ const app = express();
 
 // Bodyparser Middleware
 app.use(express.json({ extended: false }));
+app.use(cors());
 
 //all api routes
 app.use("/auth", require("./routes/api/auth"));
