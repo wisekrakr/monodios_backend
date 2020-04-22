@@ -10,7 +10,7 @@ const firebaseAuth = require("../../middleware/firebaseAuth");
 // @access    Private
 router.get("/auth", firebaseAuth, async (req, res) => {
   try {
-    const user = await db.doc(`/users/${req.user.id}`).get();
+    const user = await db.doc(`/users/${req.user.uid}`).get();
 
     res.json(user);
   } catch (err) {
