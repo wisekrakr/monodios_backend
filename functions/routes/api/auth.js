@@ -8,7 +8,7 @@ const firebaseAuth = require("../../middleware/firebaseAuth");
 // @route     GET api/auth
 // @desc      Get user data
 // @access    Private
-router.get("/auth", firebaseAuth, async (req, res) => {
+router.get("/", firebaseAuth, async (req, res) => {
   try {
     const user = await db.doc(`/users/${req.user.uid}`).get();
 
