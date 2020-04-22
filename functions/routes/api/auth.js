@@ -10,19 +10,20 @@ const firebaseAuth = require("../../middleware/firebaseAuth");
 // @access    Private
 router.get("/", firebaseAuth, async (req, res) => {
   try {
-    const user = await db.doc(`/users/${req.user.uid}`).get();
+    const user = await db.doc(`/auth/${req.user.uid}`).get();
 
     res.json(user);
   } catch (err) {
     console.error(err.message + " in auth.js (GET) /auth");
     res.status(500).send("Server Error");
+    s;
   }
 });
 
 /**
  *  @route POST api/auth
  *  @desc  Login a new user
- *  @access Private
+ *  @access Public
  */
 router.post(
   "/",
@@ -39,11 +40,25 @@ router.post(
     const { email, password } = req.body;
 
     try {
-      await firebase.auth().signInWithEmailAndPassword(email, password);
+      const user = await firebase
+        .auth()
+        .signInWithEmailAndPassword(email, password);
+
+      if (!user.exists) {
+        return res
+          .status(400)
+          .json({ errors: [{ msg: "Invalid Credentials" }] });
+      }
+
+      if (password !== user.password) {
+        return res
+          .status(400)
+          .json({ errors: [{ msg: "Invalid Credentials" }] });
+      }
 
       const token = await firebase.auth().currentUser.getIdToken();
 
-      return res.json({ token });
+      return res.json({ token, user });
     } catch (err) {
       console.error(err);
       return res
