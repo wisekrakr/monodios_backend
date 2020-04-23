@@ -17,16 +17,15 @@ router.post(
 
     check("email", "Invalid email").isEmail(),
 
-    check("password", "invalid password")
-      .isLength({ min: 4 })
-      .custom((value, { req, loc, path }) => {
-        if (value !== req.body.passwordConfirm) {
-          // trow error if passwords do not match
-          throw new Error("Passwords don't match");
-        } else {
-          return value;
-        }
-      }),
+    check("password", "invalid password").isLength({ min: 4 }),
+    // .custom((value, { req, loc, path }) => {
+    //   if (value !== req.body.passwordConfirm) {
+    //     // trow error if passwords do not match
+    //     throw new Error("Passwords don't match");
+    //   } else {
+    //     return value;
+    //   }
+    // }),
   ],
   async (req, res) => {
     const errors = validationResult(req);

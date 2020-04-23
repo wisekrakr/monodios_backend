@@ -12,8 +12,8 @@ const onPostDeletion = require("./firebase/posts");
 const app = express();
 
 // Bodyparser Middleware
-app.use(express.json({ extended: false }));
 app.use(cors());
+// app.use(express.json({ extended: false }));
 
 //all api routes
 app.use("/auth", require("./routes/api/auth"));

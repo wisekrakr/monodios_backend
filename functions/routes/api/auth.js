@@ -8,7 +8,7 @@ const firebaseAuth = require("../../middleware/firebaseAuth");
 // @route     GET api/auth
 // @desc      Get user data
 // @access    Private
-router.get("/", firebaseAuth, async (req, res) => {
+router.get("/", async (req, res) => {
   try {
     const user = await db.doc(`/auth/${req.user.uid}`).get();
 
@@ -16,7 +16,6 @@ router.get("/", firebaseAuth, async (req, res) => {
   } catch (err) {
     console.error(err.message + " in auth.js (GET) /auth");
     res.status(500).send("Server Error");
-    s;
   }
 });
 
@@ -34,37 +33,31 @@ router.post(
   async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
+      return res.status(400).json({
+        errors: errors.array(),
+        valid: Object.keys(errors).length === 0 ? true : false,
+      });
     }
 
     const { email, password } = req.body;
 
-    try {
-      const user = await firebase
-        .auth()
-        .signInWithEmailAndPassword(email, password);
-
-      if (!user.exists) {
+    await firebase
+      .auth()
+      .signInWithEmailAndPassword(email, password)
+      .then(async (data) => {
+        return await data.user.getIdToken();
+      })
+      .then((token) => {
+        return res.json({ token });
+      })
+      .catch((err) => {
+        console.error(err);
+        // auth/wrong-password
+        // auth/user-not-user
         return res
-          .status(400)
-          .json({ errors: [{ msg: "Invalid Credentials" }] });
-      }
-
-      if (password !== user.password) {
-        return res
-          .status(400)
-          .json({ errors: [{ msg: "Invalid Credentials" }] });
-      }
-
-      const token = await firebase.auth().currentUser.getIdToken();
-
-      return res.json({ token, user });
-    } catch (err) {
-      console.error(err);
-      return res
-        .status(403)
-        .json({ general: "Something went wrong. Please try again later." });
-    }
+          .status(403)
+          .json({ general: "Wrong credentials, please try again" });
+      });
   }
 );
 
