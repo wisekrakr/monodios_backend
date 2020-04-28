@@ -8,7 +8,8 @@ const BusBoy = require("busboy");
 const { admin, db } = require("../../server/admin");
 const firebaseConfig = require("../../config/config");
 const firebaseAuth = require("../../middleware/firebaseAuth");
-const { urlForAudio, urlForVideo } = require("../../utils/urlSetter");
+const { urlForAudio, urlForImage } = require("../../utils/urlSetter");
+const websiteUrlValidator = require("../../utils/websiteUrlValidator");
 
 /** *
  *  @route GET api/posts
@@ -101,6 +102,7 @@ router.post(
       genre: req.body.genre,
       createdAt: new Date().toISOString(),
       userAvatar: req.user.avatarUrl,
+      video: req.body.video !== null ? beautifyUrl(req.body.video) : null,
       comments: 0,
       likes: 0,
     };
@@ -161,7 +163,7 @@ router.post("/:postId/audio", firebaseAuth, (req, res) => {
   busboy.on("file", (fieldname, file, filename, enconding, mimetype) => {
     if (mimetype !== "audio/mpeg" && mimetype !== "audio/wav") {
       return res.status(400).json({
-        error: "Only submit these types of image files: mp3/wav",
+        error: "Only submit these types of audio files: mp3/wav",
       });
     }
 
@@ -209,32 +211,33 @@ router.post("/:postId/audio", firebaseAuth, (req, res) => {
 });
 
 /** *
- *  @route POST api/posts/:id/video
+ *  @route POST api/posts/:id/image
  *  @desc  upload video for certain post
  *  @access Private
  */
-router.post("/:postId/video", firebaseAuth, (req, res) => {
+router.post("/:postId/image", firebaseAuth, (req, res) => {
   const busboy = new BusBoy({ headers: req.headers });
 
-  let videoFileName, videoForUploading;
+  let imageFileName, imageForUploading;
 
   busboy.on("file", (fieldname, file, filename, enconding, mimetype) => {
     if (
-      mimetype !== "video/mpeg" &&
-      mimetype !== "video/mp4" &&
-      mimetype !== "video/avi"
+      mimetype !== "image/jpg" &&
+      mimetype !== "image/bmp" &&
+      mimetype !== "image/png" &&
+      mimetype !== "image/gif"
     ) {
       return res.status(400).json({
-        error: "Only submit these types of image files: mpeg/mp4/avi",
+        error: "Only submit these types of image files: jpg/bmp/png/gif",
       });
     }
 
     //postId.audio.mp3
-    const videoFile = filename.split(".")[filename.split(".").length - 1];
+    const imageFile = filename.split(".")[filename.split(".").length - 1];
     // 735628736100.mp3
-    videoFileName = `${Math.round(Math.random() * 100000000000)}.${videoFile}`;
-    const filepath = path.join(os.tmpdir(), videoFileName);
-    videoForUploading = { filepath, mimetype };
+    imageFileName = `${Math.round(Math.random() * 100000000000)}.${imageFile}`;
+    const filepath = path.join(os.tmpdir(), imageFileName);
+    imageForUploading = { filepath, mimetype };
 
     //using filesystem to create the file
     file.pipe(fs.createWriteStream(filepath));
@@ -245,20 +248,20 @@ router.post("/:postId/video", firebaseAuth, (req, res) => {
     admin
       .storage()
       .bucket()
-      .upload(videoForUploading.filepath, {
+      .upload(imageForUploading.filepath, {
         resumable: false,
         metadata: {
           metadata: {
-            contentType: videoForUploading.mimetype,
+            contentType: imageForUploading.mimetype,
           },
         },
       })
       .then(() => {
-        const videoUrl = urlForVideo(
+        const imageUrl = urlForImage(
           firebaseConfig.storageBucket,
-          videoFileName
+          imageFileName
         );
-        return db.doc(`/posts/${req.params.postId}`).update({ videoUrl });
+        return db.doc(`/posts/${req.params.postId}`).update({ imageUrl });
       })
       .then(() => {
         return res.json({ message: "Video uploaded successfully" });

@@ -5,20 +5,6 @@ const firebase = require("../../server/firebase");
 const { db } = require("../../server/admin");
 const firebaseAuth = require("../../middleware/firebaseAuth");
 
-// @route     GET api/auth
-// @desc      Get user data
-// @access    Private
-router.get("/", async (req, res) => {
-  try {
-    const user = await db.doc(`/auth/${req.user.uid}`).get();
-
-    res.json(user);
-  } catch (err) {
-    console.error(err.message + " in auth.js (GET) /auth");
-    res.status(500).send("Server Error");
-  }
-});
-
 /**
  *  @route POST api/auth
  *  @desc  Login a new user

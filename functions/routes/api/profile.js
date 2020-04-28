@@ -170,7 +170,7 @@ router.post("/avatar", firebaseAuth, (req, res) => {
   busboy.on("finish", () => {
     admin
       .storage()
-      .bucket()
+      .bucket(`${firebaseConfig.storageBucket}`)
       .upload(avatarForUploading.filepath, {
         resumable: false,
         metadata: {

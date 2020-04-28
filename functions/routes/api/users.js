@@ -4,6 +4,21 @@ const { validationResult, check } = require("express-validator");
 const { db } = require("../../server/admin");
 const firebaseConfig = require("../../config/config");
 const firebase = require("../../server/firebase");
+const firebaseAuth = require("../../middleware/firebaseAuth");
+
+// @route     GET api/users
+// @desc      Get user data
+// @access    Private
+router.get("/", firebaseAuth, async (req, res) => {
+  try {
+    const user = await db.doc(`/users/${req.user.name}`).get();
+
+    res.json(user.data());
+  } catch (err) {
+    console.error(err.message + " in users.js (GET) /users");
+    res.status(500).send("Server Error");
+  }
+});
 
 /** *
  *  @route POST api/users

@@ -58,7 +58,7 @@ router.get("/:postId/like", firebaseAuth, async (req, res) => {
 });
 
 /** *
- *  @route GET api/posts/postId/like
+ *  @route GET api/posts/postId/unlike
  *  @desc  Unlike a post
  *  @access Private
  */
